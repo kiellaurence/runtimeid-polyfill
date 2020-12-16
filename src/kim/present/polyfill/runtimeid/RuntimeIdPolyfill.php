@@ -24,7 +24,9 @@ declare(strict_types=1);
 
 namespace kim\present\polyfill\runtimeid;
 
+use kim\present\lib\accessor\Accessor;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
+use pocketmine\Server;
 
 final class RuntimeIdPolyfill{
     private function __construct(){ }
@@ -34,20 +36,16 @@ final class RuntimeIdPolyfill{
      *
      * if the data or Minecraft is updated, this may require modification.
      * Also, this is not the correct way to do this, as it is forcibly added using reflection classes.
+     *
+     * @noinspection PhpUndefinedMethodInspection
      */
     public static function run() : bool{
-        $nameToLegacyMap = json_decode(file_get_contents(\pocketmine\RESOURCE_PATH . "vanilla/block_id_map.json"), true);
+        $nameToLegacyMap = json_decode(file_get_contents(Server::getInstance()->getResourcePath() . "vanilla/block_id_map.json"), true);
         $metaMap = [];
 
-        try{
-            $reflectionClass = new \ReflectionClass(RuntimeBlockMapping::class);
-            $registerMappingMethod = $reflectionClass->getMethod("registerMapping");
-            $registerMappingMethod->setAccessible(true);
-        }catch(\ReflectionException $e){
-            return false;
-        }
-
-        foreach(RuntimeBlockMapping::getBedrockKnownStates() as $runtimeId => $state){
+        $runtimeBlockMapping = Accessor::from(RuntimeBlockMapping::class);
+        /** @see RuntimeBlockMapping::getBedrockKnownStates() */
+        foreach($runtimeBlockMapping->getBedrockKnownStates() as $runtimeId => $state){
             $name = $state->getString("name");
             if(!isset($nameToLegacyMap[$name]))
                 continue;
@@ -62,7 +60,7 @@ final class RuntimeIdPolyfill{
                 continue;
 
             /** @see RuntimeBlockMapping::registerMapping() */
-            $registerMappingMethod->invokeArgs(null, [$runtimeId, $legacyId, $meta]);
+            $runtimeBlockMapping->registerMapping($runtimeId, $legacyId, $meta);
         }
         return true;
     }

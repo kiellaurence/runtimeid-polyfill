@@ -7,4 +7,7 @@ projects:
     type: library
     lint:
       phpstan: false
+    libs:
+        - src: PresentKim/accessor/accessor
+          version: ^1.0.0
 ...
