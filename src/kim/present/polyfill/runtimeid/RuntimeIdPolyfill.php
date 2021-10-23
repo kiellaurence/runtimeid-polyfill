@@ -28,6 +28,9 @@ use kim\present\lib\accessor\Accessor;
 use pocketmine\network\mcpe\convert\RuntimeBlockMapping;
 use pocketmine\Server;
 
+use function file_get_contents;
+use function json_decode;
+
 final class RuntimeIdPolyfill{
     private function __construct(){ }
 
